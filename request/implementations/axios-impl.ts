@@ -3,6 +3,7 @@ import type { Requestor, RequestOptions, RequestConfig, Response, EventHandler }
 
 /**
  * 事件发射器
+ * 给你的请求系统加上「钩子」能力，让外部可以监听一些事件
  */
 class EventEmitter {
   private events: Map<string, Set<EventHandler>> = new Map();

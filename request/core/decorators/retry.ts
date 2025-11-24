@@ -6,13 +6,15 @@ import { useRequestor } from '../requestor';
  */
 function normalizeRetryOptions(options?: RetryOptions): Required<RetryOptions> {
   return {
-    maxCount: options?.maxCount ?? 3,
-    delay: options?.delay ?? 1000,
+    maxCount: options?.maxCount ?? 3, // 最大重试次数，默认3
+    delay: options?.delay ?? 1000, // 每次重试延迟，默认1000ms
+
+    // 判断是否要重试，默认规则：网络错误或 5xx 错误
     shouldRetry: options?.shouldRetry || ((error, count) => {
       // 默认只重试网络错误和5xx错误
-      if (!error.response) return true; // 网络错误
+      if (!error.response) return true; // // 网络错误就重试
       const status = error.response.status;
-      return status >= 500 && status < 600;
+      return status >= 500 && status < 600; // 5xx错误重试
     }),
   };
 }
@@ -20,6 +22,8 @@ function normalizeRetryOptions(options?: RetryOptions): Required<RetryOptions> {
 /**
  * 延迟函数
  */
+//返回一个 Promise，在 ms 毫秒后完成
+// 用来在重试之间等待
 function delay(ms: number): Promise<void> {
   return new Promise((resolve) => setTimeout(resolve, ms));
 }
@@ -59,12 +63,13 @@ export function createRetryRequestor(retryOptions?: RetryOptions): Requestor {
         } catch (error) {
           lastError = error;
           
+          // 达到最大次数就停止
           if (retryCount >= options.maxCount) {
             break;
           }
 
           const shouldRetry = options.shouldRetry(error, retryCount);
-          if (!shouldRetry) {
+          if (!shouldRetry) {// 不满足重试条件也停止
             break;
           }
 
@@ -76,7 +81,7 @@ export function createRetryRequestor(retryOptions?: RetryOptions): Requestor {
         }
       }
 
-      throw lastError;
+      throw lastError;// 所有重试失败，抛出最后一次错误
     },
     on(event, handler) {
       req.on(event, handler);

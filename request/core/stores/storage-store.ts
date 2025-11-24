@@ -9,16 +9,17 @@ interface StorageItem<T> {
  * 持久化缓存存储（基于 localStorage）
  */
 export class StorageStore implements CacheStore {
-  private prefix: string;
+  private prefix: string; //给缓存的 key 加个前缀，避免和其他 localStorage 冲突
 
   constructor(prefix = 'request_cache_') {
     this.prefix = prefix;
   }
 
   private getKey(key: string): string {
-    return `${this.prefix}${key}`;
+    return `${this.prefix}${key}`; //把传入的 key 加上前缀
   }
 
+  //判断 key 是否存在且未过期
   async has(key: string): Promise<boolean> {
     try {
       const storageKey = this.getKey(key);
@@ -28,6 +29,7 @@ export class StorageStore implements CacheStore {
         return false;
       }
 
+      //JSON 解析成对象
       const item: StorageItem<any> = JSON.parse(itemStr);
       
       // 检查是否过期
@@ -43,9 +45,12 @@ export class StorageStore implements CacheStore {
     }
   }
 
+  //存储缓存到 localStorage
   async set<T>(key: string, value: T, expireTime?: number): Promise<void> {
     try {
+      //加前缀生成完整 key
       const storageKey = this.getKey(key);
+      //包装成对象 {value, expireTime}
       const item: StorageItem<T> = {
         value,
         expireTime: expireTime ? Date.now() + expireTime : undefined,

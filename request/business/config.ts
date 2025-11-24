@@ -1,5 +1,5 @@
 /**
- * 业务配置
+ * 业务配置，请求系统的全局策略
  */
 export const businessConfig = {
   // API 基础路径
@@ -25,7 +25,7 @@ export const businessConfig = {
 };
 
 /**
- * 响应码定义
+ * 定义响应码枚举（让你不用在代码里写死数字）
  */
 export enum ResponseCode {
   SUCCESS = 0,
@@ -43,5 +43,5 @@ export interface BusinessResponse<T = any> {
   code: number;
   message: string;
   data: T;
-  timestamp?: number;
+  timestamp?: number; //可选的服务器时间
 }

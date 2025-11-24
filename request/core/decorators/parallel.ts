@@ -3,9 +3,11 @@ import { useRequestor } from '../requestor';
 
 /**
  * 请求队列项
+ * 队列中的每个请求
  */
 interface QueueItem {
   config: RequestConfig;
+  //对应 Promise 的回调，用于异步处理请求结果
   resolve: (value: any) => void;
   reject: (reason: any) => void;
 }
@@ -26,21 +28,22 @@ export function createParallelRequestor(parallelOptions?: ParallelOptions): Requ
   const options = normalizeParallelOptions(parallelOptions);
   const req = useRequestor();
   
-  let runningCount = 0;
-  const queue: QueueItem[] = [];
+  let runningCount = 0; //保证同时运行的请求数量不会超过 maxCount
+  const queue: QueueItem[] = []; //存储等待发送的请求
 
   /**
    * 执行队列中的下一个请求
    */
   async function processQueue(): Promise<void> {
+    //队列为空或者并发已满 → 停止
     if (queue.length === 0 || runningCount >= options.maxCount) {
       return;
     }
 
-    const item = queue.shift();
+    const item = queue.shift(); //取出队列头部请求
     if (!item) return;
 
-    runningCount++;
+    runningCount++; //标记开始执行
 
     try {
       const response = await req.request(item.config);
@@ -48,8 +51,8 @@ export function createParallelRequestor(parallelOptions?: ParallelOptions): Requ
     } catch (error) {
       item.reject(error);
     } finally {
-      runningCount--;
-      processQueue(); // 处理下一个请求
+      runningCount--; //执行完毕
+      processQueue(); // 递归处理下一个请求
     }
   }
 

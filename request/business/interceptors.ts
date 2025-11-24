@@ -3,6 +3,7 @@ import { ResponseCode, type BusinessResponse } from './config';
 
 /**
  * 请求拦截器 - 添加通用请求头
+ * 请求发出去之前检查与加工
  */
 export function requestInterceptor(config: RequestConfig): RequestConfig {
   // 添加 token
@@ -27,6 +28,7 @@ export function requestInterceptor(config: RequestConfig): RequestConfig {
 
 /**
  * 响应拦截器 - 处理业务响应
+ * 收到后端结果后，统一处理业务逻辑
  */
 export function responseInterceptor<T>(response: Response<BusinessResponse<T>>): T {
   const { data } = response;
@@ -66,6 +68,7 @@ export function responseInterceptor<T>(response: Response<BusinessResponse<T>>):
 
 /**
  * 错误拦截器
+ * 捕获网络级错误（而不是业务错误）
  */
 export function errorInterceptor(error: any): never {
   if (error.response) {
